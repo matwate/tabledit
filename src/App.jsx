@@ -189,7 +189,7 @@ const App = () => {
     );
     const textToCopy = [
       data.diagnostico ? `Diagnostico: ${data.diagnostico}` : null,
-      data.pda ? `PCA: ${data.pda}` : null,
+      data.pda ? `PDA: ${data.pda}` : null,
       currentAvanceObj?.text
         ? `Avance ${currentAvanceObj.id} (${currentAvanceObj.date ? new Date(currentAvanceObj.date).toLocaleDateString() : "sin fecha"}): ${currentAvanceObj.text}`
         : null,
@@ -344,13 +344,13 @@ const App = () => {
     const textToCopy = nonEmptyRows
       .map(
         (row) =>
-          `*PARA MAÑANA*\n EB: *${row.eb || ""}*, SO1: @${row.so1 || ""}, ${row.so2 ? "SO2: @" : ""} ${row.so2 || ""}, Actividad: ${
+          ` EB: *${row.eb || ""}*, SO1: @${row.so1 || ""}, ${row.so2 ? "SO2: @" : ""} ${row.so2 || ""}, Actividad: ${
             row.actividad || ""
           }`,
       )
       .join("\n");
     navigator.clipboard
-      .writeText(textToCopy)
+      .writeText("*PARA MAÑANA*\n".concat(textToCopy))
       .then(() => {
         setModalMessage("EB data copied!");
         setModalOpen(true);
