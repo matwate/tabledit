@@ -13,7 +13,7 @@ import { createStore } from "solid-js/store";
 import { createSignal } from "solid-js";
 import {
   DiagnosticoCard,
-  PcaCard,
+  PdaCard,
   AvanceCard,
   EbDataCard,
   SiteOwnersCard,
@@ -49,14 +49,14 @@ const App = () => {
       currentAvance: 1,
       avances: [{ id: 1, text: "", date: dateToIso(getTodayDate()) }],
       diagnostico: "",
-      pca: "",
+      pda: "",
       diagnosticoQuickPhrases: [
         "Sin Respuesta al Ping",
         "No detecta Modulos de RF/FPFH",
         "Alarmas de energia Activas",
         "Actividad de modernizacion en curso",
       ],
-      pcaQuickPhrases: [
+      pdaQuickPhrases: [
         "Actividad programada para el dia de hoy",
         "Se debe verificar condiciones locales de Energia y TX ",
         "Se debe tramitar el permiso de ingreso con el area de seguridad",
@@ -71,7 +71,7 @@ const App = () => {
   const [newSiteOwner, setNewSiteOwner] = createSignal("");
 
   const [newDiagnosticoPhrase, setNewDiagnosticoPhrase] = createSignal("");
-  const [newPcaPhrase, setNewPcaPhrase] = createSignal("");
+  const [newPdaPhrase, setNewPdaPhrase] = createSignal("");
   const [newAvancePhrase, setNewAvancePhrase] = createSignal("");
   const [modalOpen, setModalOpen] = createSignal(false);
   const [modalMessage, setModalMessage] = createSignal("");
@@ -153,24 +153,29 @@ const App = () => {
   };
 
   const deleteDiagnosticoPhrase = (index) => {
-    setData("diagnosticoQuickPhrases", (prev) => prev.filter((_, i) => i !== index));
+    setData("diagnosticoQuickPhrases", (prev) =>
+      prev.filter((_, i) => i !== index),
+    );
   };
 
   const addDiagnosticoPhrase = () => {
     if (newDiagnosticoPhrase().trim()) {
-      setData("diagnosticoQuickPhrases", (prev) => [...prev, newDiagnosticoPhrase()]);
+      setData("diagnosticoQuickPhrases", (prev) => [
+        ...prev,
+        newDiagnosticoPhrase(),
+      ]);
       setNewDiagnosticoPhrase("");
     }
   };
 
-  const deletePcaPhrase = (index) => {
-    setData("pcaQuickPhrases", (prev) => prev.filter((_, i) => i !== index));
+  const deletePdaPhrase = (index) => {
+    setData("pdaQuickPhrases", (prev) => prev.filter((_, i) => i !== index));
   };
 
-  const addPcaPhrase = () => {
-    if (newPcaPhrase().trim()) {
-      setData("pcaQuickPhrases", (prev) => [...prev, newPcaPhrase()]);
-      setNewPcaPhrase("");
+  const addPdaPhrase = () => {
+    if (newPdaPhrase().trim()) {
+      setData("pdaQuickPhrases", (prev) => [...prev, newPdaPhrase()]);
+      setNewPdaPhrase("");
     }
   };
 
@@ -184,9 +189,9 @@ const App = () => {
     );
     const textToCopy = [
       data.diagnostico ? `Diagnostico: ${data.diagnostico}` : null,
-      data.pca ? `PCA: ${data.pca}` : null,
+      data.pda ? `PCA: ${data.pda}` : null,
       currentAvanceObj?.text
-        ? `Avance (${currentAvanceObj.date ? new Date(currentAvanceObj.date).toLocaleDateString() : "sin fecha"}): ${currentAvanceObj.text}`
+        ? `Avance ${currentAvanceObj.id} (${currentAvanceObj.date ? new Date(currentAvanceObj.date).toLocaleDateString() : "sin fecha"}): ${currentAvanceObj.text}`
         : null,
     ]
       .filter(Boolean)
@@ -228,20 +233,20 @@ const App = () => {
       });
   };
 
-  const clearPca = () => {
-    setData("pca", "");
+  const clearPda = () => {
+    setData("pda", "");
   };
 
-  const copyPca = () => {
-    if (!data.pca) {
-      setModalMessage("No Pca to copy");
+  const copyPda = () => {
+    if (!data.pda) {
+      setModalMessage("No Pda to copy");
       setModalOpen(true);
       return;
     }
     navigator.clipboard
-      .writeText(data.pca)
+      .writeText(data.pda)
       .then(() => {
-        setModalMessage("Pca copied!");
+        setModalMessage("Pda copied!");
         setModalOpen(true);
       })
       .catch((err) => {
@@ -288,13 +293,15 @@ const App = () => {
     setData("currentAvance", 1);
     setData("avances", [{ id: 1, text: "", date: dateToIso(getTodayDate()) }]);
     setData("diagnostico", "");
-    setData("pca", "");
+    setData("pda", "");
     setData("ebData", []);
-    setData("siteOwners", []);
   };
 
   const addEbRow = () => {
-    setData("ebData", (prev) => [...prev, { id: Date.now(), eb: "", so1: "", so2: "", actividad: "" }]);
+    setData("ebData", (prev) => [
+      ...prev,
+      { id: Date.now(), eb: "", so1: "", so2: "", actividad: "" },
+    ]);
   };
 
   const removeEbRow = (index) => {
@@ -327,7 +334,7 @@ const App = () => {
       return;
     }
     const nonEmptyRows = data.ebData.filter(
-      (row) => row.eb || row.so1 || row.so2 || row.actividad
+      (row) => row.eb || row.so1 || row.so2 || row.actividad,
     );
     if (nonEmptyRows.length === 0) {
       setModalMessage("No EB data to copy");
@@ -337,7 +344,7 @@ const App = () => {
     const textToCopy = nonEmptyRows
       .map(
         (row) =>
-          `EB: ${row.eb || ""}, SO1: ${row.so1 || ""}, SO2: ${row.so2 || ""}, Actividad: ${
+          `*PARA MAÑANA*\n EB: *${row.eb || ""}*, SO1: @${row.so1 || ""}, ${row.so2 ? "SO2: @" : ""} ${row.so2 || ""}, Actividad: ${
             row.actividad || ""
           }`,
       )
@@ -383,15 +390,15 @@ const App = () => {
               copyDiagnostico={copyDiagnostico}
               clearDiagnostico={clearDiagnostico}
             />
-            <PcaCard
+            <PdaCard
               data={data}
               setData={setData}
-              newPcaPhrase={newPcaPhrase}
-              setNewPcaPhrase={setNewPcaPhrase}
-              addPcaPhrase={addPcaPhrase}
-              deletePcaPhrase={deletePcaPhrase}
-              copyPca={copyPca}
-              clearPca={clearPca}
+              newPdaPhrase={newPdaPhrase}
+              setNewPdaPhrase={setNewPdaPhrase}
+              addPdaPhrase={addPdaPhrase}
+              deletePdaPhrase={deletePdaPhrase}
+              copyPda={copyPda}
+              clearPda={clearPda}
             />
             <AvanceCard
               data={data}
@@ -410,7 +417,7 @@ const App = () => {
               clearCurrentAvanceText={clearCurrentAvanceText}
             />
           </div>
-          <div className="flex gap-4 mt-2">
+          <div className="flex gap-4 mt-2 w-full">
             <EbDataCard
               data={data}
               addEbRow={addEbRow}

@@ -12,17 +12,17 @@ import {
 import { Add, ContentCopy, Close } from "@suid/icons-material";
 import { For } from "solid-js";
 
-export default function PcaCard(props) {
+export default function PdaCard(props) {
   return (
     <Card sx={{ bgcolor: "#374151", flex: 1, p: 1 }}>
       <CardContent>
-        <h2 className="text-xl py-2 text-white">Pca</h2>
+        <h2 className="text-xl py-2 text-white">Pda</h2>
         <TextField
-          label="Pca"
+          label="Pda"
           variant="outlined"
           size="medium"
-          value={props.data.pca}
-          onChange={(e) => props.setData("pca", e.target.value)}
+          value={props.data.pda}
+          onChange={(e) => props.setData("pda", e.target.value)}
           fullWidth
           sx={{ bgcolor: "#1f2937", mb: 2 }}
           InputProps={{ style: { color: "white" } }}
@@ -36,14 +36,14 @@ export default function PcaCard(props) {
             mb: 2,
           }}
         >
-          <For each={props.data.pcaQuickPhrases}>
+          <For each={props.data.pdaQuickPhrases}>
             {(phrase, index) => (
               <ListItem
                 disablePadding
                 secondaryAction={
                   <IconButton
                     edge="end"
-                    onClick={() => props.deletePcaPhrase(index())}
+                    onClick={() => props.deletePdaPhrase(index())}
                     sx={{ color: "#9ca3af" }}
                   >
                     <Close />
@@ -51,7 +51,7 @@ export default function PcaCard(props) {
                 }
               >
                 <ListItemButton
-                  onClick={() => props.setData("pca", phrase)}
+                  onClick={() => props.setData("pda", phrase)}
                   sx={{ color: "white" }}
                 >
                   <ListItemText primary={phrase} />
@@ -66,19 +66,19 @@ export default function PcaCard(props) {
             variant="outlined"
             size="medium"
             fullWidth
-            value={props.newPcaPhrase()}
-            onChange={(e) => props.setNewPcaPhrase(e.target.value)}
+            value={props.newPdaPhrase()}
+            onChange={(e) => props.setNewPdaPhrase(e.target.value)}
             sx={{ bgcolor: "#1f2937", mr: 1 }}
             InputProps={{ style: { color: "white" } }}
             InputLabelProps={{ style: { color: "#9ca3af" } }}
           />
-          <Button onClick={props.addPcaPhrase} variant="contained">
+          <Button onClick={props.addPdaPhrase} variant="contained">
             <Add />
           </Button>
         </div>
         <div className="flex gap-2 mt-2">
           <Button
-            onClick={props.copyPca}
+            onClick={props.copyPda}
             variant="contained"
             color="primary"
             size="small"
@@ -86,7 +86,7 @@ export default function PcaCard(props) {
             <ContentCopy />
           </Button>
           <Button
-            onClick={props.clearPca}
+            onClick={props.clearPda}
             variant="contained"
             color="error"
             size="small"

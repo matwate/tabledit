@@ -23,13 +23,7 @@ function LocalTextField(props) {
 
   const { onUpdate, value, ...rest } = props;
 
-  return (
-    <TextField
-      {...rest}
-      value={localValue()}
-      onChange={handleChange}
-    />
-  );
+  return <TextField {...rest} value={localValue()} onChange={handleChange} />;
 }
 
 function LocalSelect(props) {
@@ -57,14 +51,13 @@ function LocalSelect(props) {
 
 export default function EbDataCard(props) {
   return (
-    <Card sx={{ bgcolor: "#1f2937", flex: 2 }}>
+    <Card fullWidth sx={{ bgcolor: "#1f2937", flex: 2 }}>
       <CardContent>
         <h2 className="text-xl py-2 text-white"> PARA MAÑANA </h2>
         <div className="flex justify-between items-center mb-2">
           <span className="text-gray-300">EB Rows</span>
           <div className="flex gap-2">
             <Button onClick={props.addEbRow} variant="contained" size="small">
-
               <Add />
             </Button>
             <Button
@@ -82,7 +75,7 @@ export default function EbDataCard(props) {
             {(row, index) => (
               <Card sx={{ bgcolor: "#374151", mb: 2 }}>
                 <CardContent className="pb-2">
-                  <div className="flex gap-2 items-center mb-2">
+                  <div className="flex gap-2 mb-2 w-full">
                     <LocalTextField
                       label="EB"
                       variant="outlined"
@@ -94,6 +87,7 @@ export default function EbDataCard(props) {
                       sx={{ bgcolor: "#1f2937" }}
                       InputProps={{ style: { color: "white" } }}
                       InputLabelProps={{ style: { color: "#9ca3af" } }}
+                      fullWidth
                     />
                     <LocalSelect
                       value={row.so1}
@@ -101,13 +95,11 @@ export default function EbDataCard(props) {
                         props.updateEbRow(index(), "so1", value)
                       }
                     >
-                      <option value="" disabled>Select SO1</option>
+                      <option value="" disabled>
+                        Select SO1
+                      </option>
                       <For each={props.data.siteOwners}>
-                        {(owner) => (
-                          <option value={owner}>
-                            {owner}
-                          </option>
-                        )}
+                        {(owner) => <option value={owner}>{owner}</option>}
                       </For>
                     </LocalSelect>
                     <LocalSelect
@@ -116,13 +108,11 @@ export default function EbDataCard(props) {
                         props.updateEbRow(index(), "so2", value)
                       }
                     >
-                      <option value="" disabled>Select SO2</option>
+                      <option value="" disabled>
+                        Select SO2
+                      </option>
                       <For each={props.data.siteOwners}>
-                        {(owner) => (
-                          <option value={owner}>
-                            {owner}
-                          </option>
-                        )}
+                        {(owner) => <option value={owner}>{owner}</option>}
                       </For>
                     </LocalSelect>
                     <Button
