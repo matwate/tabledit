@@ -7,7 +7,7 @@ import suidPlugin from "@suid/vite-plugin";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
-    base: '/tabledit/',
+    base: env.VITE_BASE || "/tabledit/",
     // solid-devtools/vite already disables itself in production via apply().
     plugins: [devtools(), solidPlugin(), tailwindcss(), suidPlugin()],
     server: {
