@@ -85,7 +85,7 @@ export default function EbDataCard(props) {
                         props.updateEbRow(index(), "eb", value)
                       }
                       sx={{ bgcolor: "#1f2937" }}
-                      InputProps={{ style: { color: "white" } }}
+                      InputProps={{ style: { color: "white" }, list: "eb-names" }}
                       InputLabelProps={{ style: { color: "#9ca3af" } }}
                       fullWidth
                     />
@@ -152,6 +152,11 @@ export default function EbDataCard(props) {
           </For>
         </div>
       </CardContent>
+      <datalist id="eb-names">
+        <For each={props.data.ebs}>
+          {(name) => <option value={name} />}
+        </For>
+      </datalist>
     </Card>
   );
 }

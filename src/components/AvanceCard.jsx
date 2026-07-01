@@ -20,7 +20,18 @@ export default function AvanceCard(props) {
           <h2 className="text-xl py-2 text-white">
             Avance {props.data.currentAvance} / {props.data.avances.length}
           </h2>
+
           <div className="flex items-center">
+            <Show when={props.data.currentAvance >= 2}>
+              <Button
+                onClick={props.deleteAvance}
+                variant="contained"
+                color="error"
+                size="small"
+              >
+                <Delete />
+              </Button>
+            </Show>
             <Button
               onClick={props.navigateNext}
               variant="contained"
@@ -35,16 +46,6 @@ export default function AvanceCard(props) {
             >
               <Remove />
             </Button>
-            <Show when={props.data.currentAvance >= 2}>
-              <Button
-                onClick={props.deleteAvance}
-                variant="contained"
-                color="error"
-                size="small"
-              >
-                <Delete />
-              </Button>
-            </Show>
           </div>
         </div>
         <TextField

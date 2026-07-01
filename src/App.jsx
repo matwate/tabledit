@@ -9,14 +9,43 @@ import {
 } from "@suid/material";
 import { ContentCopy } from "@suid/icons-material";
 import { makePersisted } from "@solid-primitives/storage";
-import { createStore } from "solid-js/store";
-import { createSignal } from "solid-js";
+import { createStore, reconcile } from "solid-js/store";
+import { createSignal, onMount } from "solid-js";
+
+// ponytail: hardcode dev origin; move to env when frontend gets deployed
+const API = "http://localhost:8000";
+
+const apiAdd = async (type, text) => {
+  try {
+    const res = await fetch(
+      `${API}/data/${type}?text=${encodeURIComponent(text)}`,
+      { method: "PUT" },
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn("apiAdd failed:", e);
+  }
+};
+const apiDel = async (type, text) => {
+  try {
+    const res = await fetch(
+      `${API}/data/${type}?text=${encodeURIComponent(text)}`,
+      { method: "DELETE" },
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn("apiDel failed:", e);
+  }
+};
 import {
   DiagnosticoCard,
   PdaCard,
   AvanceCard,
   EbDataCard,
   SiteOwnersCard,
+  TextosRapidosCard,
 } from "./components";
 
 const App = () => {
@@ -44,35 +73,76 @@ const App = () => {
     return date.toISOString();
   };
 
-  const [data, setData] = makePersisted(
-    createStore({
-      currentAvance: 1,
-      avances: [{ id: 1, text: "", date: dateToIso(getTodayDate()) }],
-      diagnostico: "",
-      pda: "",
-      diagnosticoQuickPhrases: [
-        "Sin Respuesta al Ping",
-        "No detecta Modulos de RF/FPFH",
-        "Alarmas de energia Activas",
-        "Actividad de modernizacion en curso",
-      ],
-      pdaQuickPhrases: [
-        "Actividad programada para el dia de hoy",
-        "Se debe verificar condiciones locales de Energia y TX ",
-        "Se debe tramitar el permiso de ingreso con el area de seguridad",
-      ],
-      avanceQuickPhrases: [],
-      ebData: [],
-      siteOwners: [],
-    }),
-    { name: "tabledit_data" },
-  );
+  const defaultData = {
+    currentAvance: 1,
+    avances: [{ id: 1, text: "", date: dateToIso(getTodayDate()) }],
+    diagnostico: "",
+    pda: "",
+    diagnosticoQuickPhrases: [
+      "Sin Respuesta al Ping",
+      "No detecta Modulos de RF/FPFH",
+      "Alarmas de energia Activas",
+      "Actividad de modernizacion en curso",
+    ],
+    pdaQuickPhrases: [
+      "Actividad programada para el dia de hoy",
+      "Se debe verificar condiciones locales de Energia y TX ",
+      "Se debe tramitar el permiso de ingreso con el area de seguridad",
+    ],
+    avanceQuickPhrases: [],
+    ebData: [],
+    siteOwners: [],
+    ebs: [],
+    otherQuickPhrases: [],
+  };
+
+  const [data, setData] = makePersisted(createStore(defaultData), {
+    name: "tabledit_data",
+    // ponytail: merge stored data over deep-cloned defaults so new fields
+    // survive migrations; plain reconcile removes keys missing from storage.
+    deserialize: (raw) => {
+      const stored = JSON.parse(raw);
+      const merged = JSON.parse(JSON.stringify(defaultData));
+      for (const key of Object.keys(stored)) {
+        if (stored[key] != null) merged[key] = stored[key];
+      }
+      return merged;
+    },
+  });
+
+  onMount(async () => {
+    try {
+      const res = await fetch(`${API}/data`);
+      const remote = await res.json();
+      // ponytail: union-merge per field; only setData when remote has items
+      // local lacks — avoids replacing array refs that equal local, which is
+      // what triggers the <For> re-render / white flicker on every load.
+      const fields = [
+        ["diagnosticoQuickPhrases", remote.diagnostico],
+        ["pdaQuickPhrases", remote.pda],
+        ["avanceQuickPhrases", remote.avance],
+        ["siteOwners", remote.site_owners],
+        ["ebs", remote.ebs],
+        ["otherQuickPhrases", remote.other],
+      ];
+      for (const [key, remoteList] of fields) {
+        if (!Array.isArray(remoteList)) continue;
+        const local = data[key];
+        const seen = new Set(local);
+        const additions = remoteList.filter((v) => !seen.has(v));
+        if (additions.length) setData(key, [...local, ...additions]);
+      }
+    } catch (e) {
+      // offline: keep local store
+    }
+  });
 
   const [newSiteOwner, setNewSiteOwner] = createSignal("");
 
   const [newDiagnosticoPhrase, setNewDiagnosticoPhrase] = createSignal("");
   const [newPdaPhrase, setNewPdaPhrase] = createSignal("");
   const [newAvancePhrase, setNewAvancePhrase] = createSignal("");
+  const [newOtherPhrase, setNewOtherPhrase] = createSignal("");
   const [modalOpen, setModalOpen] = createSignal(false);
   const [modalMessage, setModalMessage] = createSignal("");
 
@@ -143,16 +213,21 @@ const App = () => {
 
   const addAvanceQuickPhrase = () => {
     if (newAvancePhrase().trim()) {
+      apiAdd("avance", newAvancePhrase());
       setData("avanceQuickPhrases", (prev) => [...prev, newAvancePhrase()]);
       setNewAvancePhrase("");
     }
   };
 
   const deleteAvanceQuickPhrase = (index) => {
+    const phrase = data.avanceQuickPhrases[index];
+    apiDel("avance", phrase);
     setData("avanceQuickPhrases", (prev) => prev.filter((_, i) => i !== index));
   };
 
   const deleteDiagnosticoPhrase = (index) => {
+    const phrase = data.diagnosticoQuickPhrases[index];
+    apiDel("diagnostico", phrase);
     setData("diagnosticoQuickPhrases", (prev) =>
       prev.filter((_, i) => i !== index),
     );
@@ -160,6 +235,7 @@ const App = () => {
 
   const addDiagnosticoPhrase = () => {
     if (newDiagnosticoPhrase().trim()) {
+      apiAdd("diagnostico", newDiagnosticoPhrase());
       setData("diagnosticoQuickPhrases", (prev) => [
         ...prev,
         newDiagnosticoPhrase(),
@@ -169,14 +245,44 @@ const App = () => {
   };
 
   const deletePdaPhrase = (index) => {
+    const phrase = data.pdaQuickPhrases[index];
+    apiDel("pda", phrase);
     setData("pdaQuickPhrases", (prev) => prev.filter((_, i) => i !== index));
   };
 
   const addPdaPhrase = () => {
     if (newPdaPhrase().trim()) {
+      apiAdd("pda", newPdaPhrase());
       setData("pdaQuickPhrases", (prev) => [...prev, newPdaPhrase()]);
       setNewPdaPhrase("");
     }
+  };
+
+  const addOtherPhrase = () => {
+    if (newOtherPhrase().trim()) {
+      apiAdd("other", newOtherPhrase());
+      setData("otherQuickPhrases", (prev) => [...prev, newOtherPhrase()]);
+      setNewOtherPhrase("");
+    }
+  };
+
+  const deleteOtherPhrase = (index) => {
+    const phrase = data.otherQuickPhrases[index];
+    apiDel("other", phrase);
+    setData("otherQuickPhrases", (prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const copyOtherPhrase = (phrase) => {
+    navigator.clipboard
+      .writeText(phrase)
+      .then(() => {
+        setModalMessage("Copiado!");
+        setModalOpen(true);
+      })
+      .catch((err) => {
+        setModalMessage(`Error al copiar: ${err.message}`);
+        setModalOpen(true);
+      });
   };
 
   const clearDiagnostico = () => {
@@ -314,16 +420,23 @@ const App = () => {
 
   const updateEbRow = (index, field, value) => {
     setData("ebData", index, field, value);
+    if (field === "eb" && value && !data.ebs?.includes(value)) {
+      apiAdd("ebs", value);
+      setData("ebs", (prev) => [...(prev || []), value]);
+    }
   };
 
   const addSiteOwner = () => {
     if (newSiteOwner().trim()) {
+      apiAdd("site_owners", newSiteOwner());
       setData("siteOwners", (prev) => [...prev, newSiteOwner()]);
       setNewSiteOwner("");
     }
   };
 
   const removeSiteOwner = (index) => {
+    const name = data.siteOwners[index];
+    apiDel("site_owners", name);
     setData("siteOwners", (prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -349,8 +462,14 @@ const App = () => {
           }`,
       )
       .join("\n");
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
     navigator.clipboard
-      .writeText("*PARA MAÑANA*\n".concat(textToCopy))
+      .writeText(
+        `*PARA MAÑANA: ${tomorrow.toISOString().split("T")[0]}*\n`.concat(
+          textToCopy,
+        ),
+      )
       .then(() => {
         setModalMessage("EB data copied!");
         setModalOpen(true);
@@ -432,6 +551,16 @@ const App = () => {
               setNewSiteOwner={setNewSiteOwner}
               addSiteOwner={addSiteOwner}
               removeSiteOwner={removeSiteOwner}
+            />
+          </div>
+          <div className="mt-2 w-full">
+            <TextosRapidosCard
+              data={data}
+              newOtherPhrase={newOtherPhrase}
+              setNewOtherPhrase={setNewOtherPhrase}
+              addOtherPhrase={addOtherPhrase}
+              deleteOtherPhrase={deleteOtherPhrase}
+              copyOtherPhrase={copyOtherPhrase}
             />
           </div>
         </Card>

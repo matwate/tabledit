@@ -1,0 +1,16 @@
+[project]
+name = "fastapi-minimal"
+version = "0.1.0"
+description = "Minimal FastAPI template"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "aiosqlite",
+]
+
+[dependency-groups]
+dev = [
+    "httpx",
+    "pytest",
+]

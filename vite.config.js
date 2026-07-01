@@ -6,6 +6,7 @@ import suidPlugin from "@suid/vite-plugin";
 
 export default defineConfig({
   base: '/tabledit/',
+  // solid-devtools/vite already disables itself in production via apply().
   plugins: [devtools(), solidPlugin(), tailwindcss(), suidPlugin()],
   server: {
     port: 3000,
