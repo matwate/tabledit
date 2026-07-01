@@ -12,8 +12,8 @@ import { makePersisted } from "@solid-primitives/storage";
 import { createStore, reconcile } from "solid-js/store";
 import { createSignal, onMount } from "solid-js";
 
-// ponytail: hardcode dev origin; move to env when frontend gets deployed
-const API = "http://localhost:8000";
+// ponytail: read backend origin from env; fallback to dev default
+const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const apiAdd = async (type, text) => {
   try {

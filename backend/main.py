@@ -1,12 +1,14 @@
 from typing import List
 from pydantic import ValidationError
 from pathlib import Path
+import os
 from model import DB, Store
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 DB_PATH = "./db.json"
+PORT = int(os.environ.get("PORT", "8000"))
 
 
 class ArrayDatabase:
@@ -83,3 +85,9 @@ async def append(type: Store, text: str , database: ArrayDatabase = Depends(get_
 async def delete_item(type: Store, text: str, database: ArrayDatabase = Depends(get_db)):
     database.delete(type, text)
     return {"deleted": text}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
