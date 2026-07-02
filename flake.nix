@@ -35,12 +35,12 @@
 
             makeWrapper ${backendPython}/bin/python $out/bin/tabledit-backend \
               --set-default PORT 8000 \
+              --set-default DB_PATH "db.json" \
               --set PYTHONPATH "$out/share/tabledit-backend" \
               --add-flags "-m uvicorn" \
               --add-flags "main:app" \
               --add-flags "--host 0.0.0.0" \
-              --add-flags "--port \$PORT" \
-              --run "cd $out/share/tabledit-backend"
+              --add-flags "--port \$PORT"
           '';
         };
 

@@ -7,7 +7,7 @@ from model import DB, Store
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-DB_PATH = "./db.json"
+DB_PATH = os.environ.get("DB_PATH", "./db.json")
 PORT = int(os.environ.get("PORT", "8000"))
 
 
@@ -17,16 +17,15 @@ class ArrayDatabase:
 
     def startup(self):
         fp = Path(self.path)
-        db_json= fp.read_text()
 
         try:
-            model = DB.model_validate_json(db_json) 
-            self.model = model 
-        except ValidationError as e :
+            db_json = fp.read_text()
+            model = DB.model_validate_json(db_json)
+            self.model = model
+        except (ValidationError, FileNotFoundError):
             default = DB()
-            default.model_dump_json()
             fp.write_text(default.model_dump_json())
-            self.model = default 
+            self.model = default
 
     def save(self):
     
