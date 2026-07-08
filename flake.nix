@@ -9,6 +9,7 @@
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
+        lib = nixpkgs.lib;
         pkgs = nixpkgs.legacyPackages.${system};
 
         # -----------------------------------------------------------------
@@ -57,7 +58,7 @@
           VITE_API_URL = builtins.getEnv "VITE_API_URL";
           VITE_BASE = "/";
 
-          npmDepsHash = "sha256-7VUQLydUAjWq3SCC1pWCu6JhdX5kMWzTnmfQiIK2+Kk=";
+          npmDepsHash = "sha256-clP1qW1UuFPqCxjrA6PZWu+QrOuutoDMRqps3Mjc+zY=";
           npmFlags = [ "--legacy-peer-deps" ];
 
           installPhase = ''
