@@ -11,6 +11,7 @@ import Add from "@mui/icons-material/Add";
 import Delete from "@mui/icons-material/Delete";
 import Clear from "@mui/icons-material/Clear";
 import ContentCopy from "@mui/icons-material/ContentCopy";
+import RestartAlt from "@mui/icons-material/RestartAlt";
 import { memo, useMemo } from "react";
 import { useStore } from "../store";
 import { useShallow } from "zustand/react/shallow";
@@ -45,6 +46,7 @@ function EbDataCard() {
     clearEbRow,
     updateEbRow,
     copyEbData,
+    resetEbs,
   } = useStore(
     useShallow((s) => ({
       ebData: s.ebData,
@@ -55,6 +57,7 @@ function EbDataCard() {
       clearEbRow: s.clearEbRow,
       updateEbRow: s.updateEbRow,
       copyEbData: s.copyEbData,
+      resetEbs: s.resetEbs,
     })),
   );
 
@@ -110,6 +113,15 @@ function EbDataCard() {
               size="small"
             >
               <ContentCopy />
+            </Button>
+            <Button
+              onClick={resetEbs}
+              variant="contained"
+              color="warning"
+              size="small"
+              title="Reset saved EB names to EBS.txt"
+            >
+              <RestartAlt />
             </Button>
           </Box>
         </Box>

@@ -123,6 +123,7 @@ interface StoreState extends AppData {
 
   addSiteOwner: () => void;
   removeSiteOwner: (index: number) => void;
+  resetEbs: () => void;
 
   clearDiagnostico: () => void;
   clearPda: () => void;
@@ -344,12 +345,6 @@ export const useStore = create<StoreState>()(
           const ebData = [...state.ebData];
           ebData[index] = row;
           const next: Partial<AppData> = { ebData };
-          if (field === "eb" && value && !state.ebs.includes(value)) {
-            apiAdd("ebs", value).catch((e) =>
-              set({ error: `Failed to save EB: ${e.message}` }),
-            );
-            next.ebs = sortedUnique([...state.ebs, value]);
-          }
           return next as AppData;
         });
       },
@@ -371,6 +366,16 @@ export const useStore = create<StoreState>()(
           set({ error: `Failed to delete site owner: ${e.message}` }),
         );
         set({ siteOwners: siteOwners.filter((_, i) => i !== index) });
+      },
+
+      resetEbs: () => {
+        const { ebs } = get();
+        for (const name of ebs) {
+          apiDel("ebs", name).catch((e) =>
+            set({ error: `Failed to delete EB: ${e.message}` }),
+          );
+        }
+        set({ ebs: [] });
       },
 
       clearDiagnostico: () => set({ diagnostico: "" }),
@@ -484,6 +489,18 @@ export const useStore = create<StoreState>()(
         if (nonEmptyRows.length === 0) {
           set({ error: "No EB data to copy" });
           return;
+        }
+        const { ebs } = get();
+        const newEbs = nonEmptyRows
+          .map((r) => r.eb.trim())
+          .filter((name) => name && !ebs.includes(name));
+        if (newEbs.length > 0) {
+          for (const name of newEbs) {
+            apiAdd("ebs", name).catch((e) =>
+              set({ error: `Failed to save EB: ${e.message}` }),
+            );
+          }
+          set({ ebs: sortedUnique([...ebs, ...newEbs]) });
         }
         const textToCopy = nonEmptyRows
           .map(
