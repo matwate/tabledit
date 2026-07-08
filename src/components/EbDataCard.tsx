@@ -1,4 +1,5 @@
 import {
+  Autocomplete,
   Box,
   Button,
   Card,
@@ -10,10 +11,11 @@ import Add from "@mui/icons-material/Add";
 import Delete from "@mui/icons-material/Delete";
 import Clear from "@mui/icons-material/Clear";
 import ContentCopy from "@mui/icons-material/ContentCopy";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { useStore } from "../store";
 import { useShallow } from "zustand/react/shallow";
 import type { ReactNode } from "react";
+import ebNamesRaw from "../../EBS.txt?raw";
 
 interface SelectProps {
   value: string;
@@ -56,12 +58,38 @@ function EbDataCard() {
     })),
   );
 
+  const tomorrow = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toLocaleDateString("es-CO", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  }, []);
+
+  const ebOptions = useMemo(() => {
+    const fromFile = ebNamesRaw
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    return Array.from(new Set([...fromFile, ...ebs])).sort((a, b) =>
+      a.localeCompare(b),
+    );
+  }, [ebs]);
+
   return (
     <Card className="bg-gray-800" sx={{ flex: 2 }}>
       <CardContent>
-        <Typography variant="h6" className="text-white py-2">
-          PARA MAÑANA
-        </Typography>
+        <Box display="flex" alignItems="baseline" gap={1} className="py-2">
+          <Typography variant="h6" className="text-white">
+            PARA MAÑANA
+          </Typography>
+          <Typography variant="body2" color="#9ca3af">
+            {tomorrow}
+          </Typography>
+        </Box>
         <Box
           display="flex"
           justifyContent="space-between"
@@ -90,17 +118,32 @@ function EbDataCard() {
             <Card key={row.id} className="bg-gray-700" sx={{ mb: 2 }}>
               <CardContent className="pb-2">
                 <Box display="flex" gap={2} mb={2} width="100%">
-                  <TextField
-                    label="EB"
-                    variant="outlined"
-                    size="small"
+                  <Autocomplete
+                    freeSolo
                     value={row.eb}
-                    onChange={(e) => updateEbRow(index, "eb", e.target.value)}
-                    className="bg-gray-800"
-                    InputProps={{ style: { color: "white" } }}
-                    inputProps={{ list: "eb-names" }}
-                    InputLabelProps={{ style: { color: "#9ca3af" } }}
-                    fullWidth
+                    onChange={(_e, value) =>
+                      updateEbRow(index, "eb", (value as string) ?? "")
+                    }
+                    onInputChange={(_e, value) =>
+                      updateEbRow(index, "eb", value)
+                    }
+                    options={ebOptions}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="EB"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        className="bg-gray-800"
+                        InputProps={{
+                          ...params.InputProps,
+                          style: { color: "white" },
+                        }}
+                        InputLabelProps={{ style: { color: "#9ca3af" } }}
+                      />
+                    )}
+                    sx={{ minWidth: 200 }}
                   />
                   <NativeSelect
                     value={row.so1}
@@ -164,11 +207,6 @@ function EbDataCard() {
           ))}
         </Box>
       </CardContent>
-      <datalist id="eb-names">
-        {ebs.map((name) => (
-          <option key={name} value={name} />
-        ))}
-      </datalist>
     </Card>
   );
 }
