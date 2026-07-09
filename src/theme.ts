@@ -8,9 +8,15 @@ export const theme = createTheme({
     mode: "dark",
     background: { default: "#111827", paper: "#1f2937" },
   },
-  components: {
+components: {
     MuiCard: {
       defaultProps: { elevation: 0 },
+      styleOverrides: {
+        root: {
+          border: "1px solid",
+          borderColor: "rgba(255, 255, 255, 0.12)",
+        },
+      },
     },
     MuiListItemButton: {
       styleOverrides: {
