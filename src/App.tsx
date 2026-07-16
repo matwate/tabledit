@@ -66,7 +66,8 @@ function App() {
       </Box>
 
       <Box p={2}>
-        <Card className="bg-gray-800" sx={{ p: 2 }}>
+        <Card className="bg-gray-800" sx={{ p: 2, bgcolor: '#748cab' }}>
+
           <CardContent>
             <Box display="flex" gap={2} flexWrap="wrap">
               <DiagnosticoCard />
